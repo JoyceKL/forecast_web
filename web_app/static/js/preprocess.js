@@ -27,3 +27,15 @@ function renderPreview(id, rows) {
     container.innerHTML = '';
     container.appendChild(table);
 }
+
+function showExplanation(topic) {
+    fetch('/explain', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({topic: topic})
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('explanation-box').innerHTML = marked.parse(data.markdown);
+    });
+}

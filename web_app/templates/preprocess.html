@@ -14,17 +14,23 @@
             <div class="col-md-4">
                 <input type="file" class="form-control" name="file" required>
             </div>
-            <div class="col-md-2">
-                <input class="form-check-input" type="checkbox" name="ssa" id="ssa">
-                <label class="form-check-label" for="ssa">SSA</label>
+            <div class="col-md-2 d-flex align-items-center">
+                <div>
+                    <input class="form-check-input" type="checkbox" name="ssa" id="ssa">
+                    <label class="form-check-label" for="ssa">SSA</label>
+                </div>
+                <button type="button" class="btn btn-outline-info btn-sm ms-2" onclick="showExplanation('ssa')">🧠 Hiểu toán học</button>
             </div>
             <div class="col-md-2">
                 <input class="form-check-input" type="checkbox" name="wavelet" id="wavelet">
                 <label class="form-check-label" for="wavelet">Wavelet</label>
             </div>
-            <div class="col-md-2">
-                <input class="form-check-input" type="checkbox" name="rolling" id="rolling">
-                <label class="form-check-label" for="rolling">Rolling Mean</label>
+            <div class="col-md-2 d-flex align-items-center">
+                <div>
+                    <input class="form-check-input" type="checkbox" name="rolling" id="rolling">
+                    <label class="form-check-label" for="rolling">Rolling Mean</label>
+                </div>
+                <button type="button" class="btn btn-outline-info btn-sm ms-2" onclick="showExplanation('rolling_mean')">🧠 Hiểu toán học</button>
             </div>
             <div class="col-md-2">
                 <input type="number" class="form-control" name="lag" value="1" min="1" placeholder="Lag">
@@ -47,7 +53,12 @@
                 <button type="submit" class="btn btn-primary w-100">Run</button>
             </div>
         </div>
+        <div class="d-flex align-items-center mt-3">
+            <label class="form-label me-3">🔃 Chuẩn hóa bằng MinMaxScaler</label>
+            <button type="button" class="btn btn-outline-info btn-sm" onclick="showExplanation('minmax')">🧠 Hiểu toán học</button>
+        </div>
     </form>
+    <div id="explanation-box" class="p-3 border rounded bg-light mb-3" style="white-space: pre-wrap;"></div>
     <div id="result" style="display:none;">
         <h4>Train Preview</h4>
         <div id="train-table" class="table-responsive"></div>
@@ -59,6 +70,7 @@
         <a href="/download_processed/test" class="btn btn-outline-light btn-sm">Download Test</a>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="/static/js/preprocess.js"></script>
 </body>
 </html>
