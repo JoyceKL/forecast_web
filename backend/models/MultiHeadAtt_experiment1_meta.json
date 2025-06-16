@@ -1,0 +1,8 @@
+{
+  "start_date": "2023-12-25",
+  "sequence_length": 14,
+  "features": [
+    "Value"
+  ],
+  "scaler": "MinMaxScaler"
+}
