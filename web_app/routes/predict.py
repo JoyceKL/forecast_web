@@ -8,6 +8,7 @@ import joblib
 from tensorflow.keras.models import load_model
 
 from utils.preprocessing import preprocess_dataframe
+from utils.chart_utils import plot_forecast
 
 predict_bp = Blueprint("predict_bp", __name__)
 
@@ -67,6 +68,11 @@ def predict():
     excel_path = os.path.join(DOWNLOAD_DIR, "forecast.xlsx")
     result_df.to_csv(csv_path, index=False)
     result_df.to_excel(excel_path, index=False)
+
+    # save chart image
+    chart_path = os.path.join("static", "charts", "forecast.png")
+    actual_vals = result_df.get("Actual").tolist() if "Actual" in result_df.columns else None
+    plot_forecast(dates, actual_vals, preds, save_path=chart_path)
 
     # log history
     history = []
