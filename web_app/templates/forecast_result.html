@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forecast Result</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/darkly/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h1 class="mb-4">Forecast Result</h1>
+    <div class="mb-3">
+        <a href="/forecast/download/csv" class="btn btn-primary btn-sm me-2">Download CSV</a>
+        <a href="/forecast/download/excel" class="btn btn-primary btn-sm me-2">Download Excel</a>
+        <a href="/forecast/download/chart" class="btn btn-secondary btn-sm">Download Chart</a>
+    </div>
+    {% if preview %}
+    <div class="table-responsive mb-4">
+        <table class="table table-dark table-bordered">
+            <thead>
+            <tr>
+                {% for col in preview[0].keys() %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in preview %}
+            <tr>
+                {% for val in row.values() %}
+                <td>{{ val }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    <h3>Forecast Chart</h3>
+    <img src="{{ url_for('static', filename='charts/forecast.png') }}" class="img-fluid" alt="Forecast Chart">
+</div>
+</body>
+</html>
