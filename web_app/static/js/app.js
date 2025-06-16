@@ -18,7 +18,11 @@ document.getElementById('upload-form').addEventListener('submit', async function
 document.getElementById('model-upload-form').addEventListener('submit', async function(e){
     e.preventDefault();
     const formData = new FormData(this);
-    const response = await fetch('/upload_model/submit', {method: 'POST', body: formData});
+    const response = await fetch('/upload_model/submit', {
+        method: 'POST',
+        body: formData,
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+    });
     const data = await response.json();
     if (data.error) {
         alert(data.error);

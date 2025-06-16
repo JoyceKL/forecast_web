@@ -20,6 +20,24 @@ def get_available_models(model_dir: str = "models") -> List[str]:
     ]
 
 
+def get_model_details(model_dir: str = "models") -> List[Dict[str, object]]:
+    """Return detailed info for models in model_dir."""
+    path = Path(model_dir)
+    if not path.exists():
+        path.mkdir(parents=True, exist_ok=True)
+    models = []
+    for p in path.iterdir():
+        if p.suffix in {".pkl", ".joblib", ".h5"}:
+            stat = p.stat()
+            models.append({
+                "name": p.name,
+                "size": round(stat.st_size / 1024, 1),
+                "upload_time": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
+                "type": p.suffix.upper().strip(".")
+            })
+    return models
+
+
 def get_history_stats(history_file: str = "downloads/history.json") -> Dict[str, object]:
     """Return run count and last run timestamp from history file."""
     path = Path(history_file)

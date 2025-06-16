@@ -1,8 +1,8 @@
 import os
 from datetime import datetime
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, redirect
 from werkzeug.utils import secure_filename
-from utils.model_utils import get_available_models
+from utils.model_utils import get_model_details
 
 upload_bp = Blueprint("upload_bp", __name__)
 
@@ -11,7 +11,7 @@ MODEL_DIR = "models"
 @upload_bp.route("/upload_model/")
 def upload_model_page():
     """Render upload model page with list of existing models."""
-    models = get_available_models(MODEL_DIR)
+    models = get_model_details(MODEL_DIR)
     return render_template("upload_model.html", models=models)
 
 
@@ -48,4 +48,16 @@ def upload_model():
     with open(log_path, "a") as f:
         f.write(f"{datetime.utcnow().isoformat()} - {filename}\n")
 
-    return jsonify({"name": filename})
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"name": filename})
+    return redirect("/upload_model/")
+
+
+@upload_bp.route("/upload_model/delete/<model_name>", methods=["POST"])
+def delete_model(model_name: str):
+    """Delete a model file from the models directory."""
+    safe_name = secure_filename(model_name)
+    path = os.path.join(MODEL_DIR, safe_name)
+    if os.path.exists(path):
+        os.remove(path)
+    return redirect("/upload_model/")
