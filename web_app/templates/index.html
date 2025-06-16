@@ -14,7 +14,7 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item list-group-item-action list-group-item-dark p-3" href="#forecast-section">Dự báo</a>
             <a class="list-group-item list-group-item-action list-group-item-dark p-3" href="/preprocess">Tiền xử lý</a>
-            <a class="list-group-item list-group-item-action list-group-item-dark p-3" href="#model-section">Upload Model</a>
+            <a class="list-group-item list-group-item-action list-group-item-dark p-3" href="/upload_model">Upload Model</a>
             <a class="list-group-item list-group-item-action list-group-item-dark p-3" href="#history-section">Lịch sử</a>
         </div>
     </div>
@@ -85,7 +85,7 @@
             <div id="model-section" class="card mt-5">
                 <div class="card-header">Upload Model</div>
                 <div class="card-body">
-                    <form id="model-upload-form" enctype="multipart/form-data">
+                    <form id="model-upload-form" action="/upload_model/submit" enctype="multipart/form-data">
                         <div class="row g-2 align-items-center">
                             <div class="col-md-9">
                                 <input type="file" class="form-control" name="model_file" required>

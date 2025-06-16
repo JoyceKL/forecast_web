@@ -18,7 +18,7 @@ document.getElementById('upload-form').addEventListener('submit', async function
 document.getElementById('model-upload-form').addEventListener('submit', async function(e){
     e.preventDefault();
     const formData = new FormData(this);
-    const response = await fetch('/upload_model', {method: 'POST', body: formData});
+    const response = await fetch('/upload_model/submit', {method: 'POST', body: formData});
     const data = await response.json();
     if (data.error) {
         alert(data.error);
