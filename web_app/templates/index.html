@@ -18,6 +18,16 @@
         <button type="submit">Predict</button>
     </form>
 
+    <form id="model-upload-form" enctype="multipart/form-data" style="margin-top:10px;">
+        <input type="file" name="model_file" accept=".pkl,.joblib,.h5" required>
+        <button type="submit">Upload Model</button>
+    </form>
+
+    <div id="download-links" style="display:none;margin-top:10px;">
+        <a id="csv-link" href="/download/csv">Tải CSV</a> |
+        <a id="excel-link" href="/download/excel">Tải Excel</a>
+    </div>
+
     <div id="table-container"></div>
     <canvas id="chart" style="max-width:600px;"></canvas>
 
