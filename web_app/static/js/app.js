@@ -9,6 +9,25 @@ document.getElementById('upload-form').addEventListener('submit', async function
     }
     renderTable(data);
     renderChart(data);
+    document.getElementById('download-links').style.display = 'block';
+});
+
+document.getElementById('model-upload-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const formData = new FormData(this);
+    const response = await fetch('/upload_model', {method: 'POST', body: formData});
+    const data = await response.json();
+    if (data.error) {
+        alert(data.error);
+        return;
+    }
+    const select = document.getElementById('model-select');
+    const opt = document.createElement('option');
+    opt.value = data.name;
+    opt.textContent = data.name;
+    select.appendChild(opt);
+    this.reset();
+    alert('Model uploaded');
 });
 
 function renderTable(data) {
