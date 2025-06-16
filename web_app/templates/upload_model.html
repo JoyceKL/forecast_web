@@ -18,12 +18,22 @@
         <button type="submit" class="btn btn-primary">Upload</button>
     </form>
     {% if models %}
-    <h2 class="mt-4">Existing Models</h2>
-    <ul class="list-group">
+    <div class="card p-3">
+      <h5 class="mb-3 text-success">📚 Danh sách Mô Hình Đã Tải Lên</h5>
+      <ul class="list-group list-group-flush">
         {% for m in models %}
-        <li class="list-group-item list-group-item-dark">{{ m }}</li>
+        <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
+          <div>
+            <strong>{{ m.name }}</strong>
+            <span class="text-muted small ms-2">({{ m.size }} KB • {{ m.upload_time }} • {{ m.type }})</span>
+          </div>
+          <form action="/upload_model/delete/{{ m.name }}" method="post" onsubmit="return confirm('Xác nhận xoá mô hình {{ m.name }}?');">
+            <button class="btn btn-sm btn-danger">Xóa</button>
+          </form>
+        </li>
         {% endfor %}
-    </ul>
+      </ul>
+    </div>
     {% endif %}
 </div>
 </body>
