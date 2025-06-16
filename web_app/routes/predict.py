@@ -1,4 +1,6 @@
 import os
+import json
+from datetime import datetime
 
 from flask import Blueprint, request, jsonify, send_from_directory
 import pandas as pd
@@ -11,6 +13,7 @@ predict_bp = Blueprint("predict_bp", __name__)
 
 MODEL_DIR = "models"
 DOWNLOAD_DIR = "downloads"
+HISTORY_FILE = os.path.join(DOWNLOAD_DIR, "history.json")
 
 
 @predict_bp.route("/predict", methods=["POST"])
@@ -65,26 +68,42 @@ def predict():
     result_df.to_csv(csv_path, index=False)
     result_df.to_excel(excel_path, index=False)
 
+    # log history
+    history = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE) as f:
+            try:
+                history = json.load(f)
+            except json.JSONDecodeError:
+                history = []
+    history.append({"timestamp": datetime.utcnow().isoformat()})
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history, f)
+
+    result["run_count"] = len(history)
+    result["last_run"] = history[-1]["timestamp"]
+
     return jsonify(result)
 
 
-@predict_bp.route("/upload_model", methods=["POST"])
-def upload_model():
-    """Upload a model file to the models directory."""
-    if "model_file" not in request.files:
-        return jsonify({"error": "No model file uploaded"}), 400
+@predict_bp.route("/stats")
+def stats():
+    """Return dashboard statistics."""
+    history = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE) as f:
+            try:
+                history = json.load(f)
+            except json.JSONDecodeError:
+                history = []
+    from utils.model_utils import get_available_models
+    return jsonify({
+        "run_count": len(history),
+        "last_run": history[-1]["timestamp"] if history else None,
+        "model_count": len(get_available_models())
+    })
 
-    file = request.files["model_file"]
-    if file.filename == "":
-        return jsonify({"error": "No filename"}), 400
 
-    if not file.filename.endswith((".pkl", ".joblib", ".h5")):
-        return jsonify({"error": "Unsupported model format"}), 400
-
-    os.makedirs(MODEL_DIR, exist_ok=True)
-    save_path = os.path.join(MODEL_DIR, file.filename)
-    file.save(save_path)
-    return jsonify({"name": file.filename})
 
 
 @predict_bp.route("/download/<ftype>")

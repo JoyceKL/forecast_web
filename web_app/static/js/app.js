@@ -1,8 +1,10 @@
 document.getElementById('upload-form').addEventListener('submit', async function(e){
     e.preventDefault();
+    document.getElementById('loading').style.display = 'block';
     const formData = new FormData(this);
     const response = await fetch('/predict', {method: 'POST', body: formData});
     const data = await response.json();
+    document.getElementById('loading').style.display = 'none';
     if (data.error) {
         alert(data.error);
         return;
@@ -10,6 +12,7 @@ document.getElementById('upload-form').addEventListener('submit', async function
     renderTable(data);
     renderChart(data);
     document.getElementById('download-links').style.display = 'block';
+    updateStats(data);
 });
 
 document.getElementById('model-upload-form').addEventListener('submit', async function(e){
@@ -28,11 +31,33 @@ document.getElementById('model-upload-form').addEventListener('submit', async fu
     select.appendChild(opt);
     this.reset();
     alert('Model uploaded');
+    fetchStats();
 });
+
+async function fetchStats() {
+    const resp = await fetch('/stats');
+    const data = await resp.json();
+    updateStats(data);
+}
+
+function updateStats(data) {
+    if (data.model_count !== undefined) {
+        document.getElementById('model-count').textContent = data.model_count;
+    }
+    if (data.run_count !== undefined) {
+        document.getElementById('run-count').textContent = data.run_count;
+    }
+    if (data.last_run !== undefined) {
+        document.getElementById('last-run').textContent = data.last_run || 'N/A';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', fetchStats);
 
 function renderTable(data) {
     const container = document.getElementById('table-container');
     const table = document.createElement('table');
+    table.className = 'table table-dark table-bordered';
     let html = '<tr><th>Date</th>';
     if (data.actual) {
         html += '<th>Actual</th>';
