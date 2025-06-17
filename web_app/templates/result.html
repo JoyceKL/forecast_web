@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forecast Result</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/darkly/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h1 class="mb-4">Forecast Result</h1>
+    {% if metrics %}
+    <div class="mb-3">
+        <p><strong>MAPE:</strong> {{ metrics.MAPE | round(4) }}</p>
+        <p><strong>RMSE:</strong> {{ metrics.RMSE | round(4) }}</p>
+        <a href="/forecast/download/csv" class="btn btn-primary btn-sm me-2">Download CSV</a>
+        <a href="/forecast/download/json" class="btn btn-secondary btn-sm">Download Metrics</a>
+    </div>
+    {% endif %}
+    {% if preview %}
+    <div class="table-responsive mb-4">
+        <table class="table table-dark table-bordered">
+            <thead>
+            <tr>
+                {% for col in preview[0].keys() %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in preview %}
+            <tr>
+                {% for val in row.values() %}
+                <td>{{ val }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
