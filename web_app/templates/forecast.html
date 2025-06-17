@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Run Forecast</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/darkly/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <h1 class="mb-4">Train and Forecast</h1>
+    <form method="post">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <select name="model" class="form-select">
+                    <option value="linear">Linear Regression</option>
+                    <option value="arima">ARIMA</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="seq_len" class="form-control" placeholder="SEQ_LEN" value="3" min="1">
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="epochs" class="form-control" placeholder="Epochs" value="10" min="1">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Dự báo</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

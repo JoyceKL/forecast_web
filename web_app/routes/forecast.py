@@ -1,107 +1,99 @@
 import os
 import json
-from datetime import datetime
-from flask import Blueprint, request, jsonify, send_from_directory, render_template
+from flask import Blueprint, request, render_template, redirect, send_from_directory
 import pandas as pd
-import joblib
-from tensorflow.keras.models import load_model
-
-from utils.preprocessing import preprocess_dataframe
-from utils.chart_utils import plot_forecast
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
 
 forecast_bp = Blueprint("forecast_bp", __name__)
 
-MODEL_DIR = "models"
-DOWNLOAD_DIR = "downloads"
-CHART_DIR = os.path.join("static", "charts")
-CHART_FILE = "forecast.png"
+DATA_DIR = os.path.join("data", "processed")
+RESULT_DIR = "results"
 
 
-@forecast_bp.route("/forecast", methods=["POST"])
-def run_model():
-    """Upload data, run selected model and store results."""
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+def _load_data():
+    train_path = os.path.join(DATA_DIR, "train.csv")
+    test_path = os.path.join(DATA_DIR, "test.csv")
+    if not os.path.exists(train_path) or not os.path.exists(test_path):
+        raise FileNotFoundError("Missing train.csv or test.csv in data/processed")
+    train_df = pd.read_csv(train_path)
+    test_df = pd.read_csv(test_path)
+    return train_df, test_df
 
-    file = request.files["file"]
-    model_name = request.form.get("model")
-    if not model_name:
-        return jsonify({"error": "No model selected"}), 400
 
-    if file.filename.endswith(".csv"):
-        df = pd.read_csv(file)
-    elif file.filename.endswith((".xls", ".xlsx")):
-        df = pd.read_excel(file)
+def _linear_forecast(train, test, seq_len):
+    series = train["Value"].values
+    X, y = [], []
+    for i in range(seq_len, len(series)):
+        X.append(series[i-seq_len:i])
+        y.append(series[i])
+    model = LinearRegression()
+    model.fit(np.array(X), np.array(y))
+
+    all_vals = np.concatenate([series[-seq_len:], test["Value"].values])
+    preds = []
+    for i in range(seq_len, seq_len + len(test)):
+        x = all_vals[i-seq_len:i].reshape(1, -1)
+        pred = model.predict(x)[0]
+        preds.append(pred)
+    return preds
+
+
+def _arima_forecast(train, test, seq_len):
+    model = ARIMA(train["Value"], order=(max(1, seq_len), 1, 0)).fit()
+    preds = model.forecast(steps=len(test))
+    return preds.tolist()
+
+
+@forecast_bp.route("/forecast", methods=["GET", "POST"])
+def forecast_page():
+    if request.method == "GET":
+        return render_template("forecast.html")
+
+    model_name = request.form.get("model") or "linear"
+    seq_len = int(request.form.get("seq_len", 3))
+    _ = int(request.form.get("epochs", 10))  # unused but parsed
+    train_df, test_df = _load_data()
+
+    if model_name == "arima":
+        preds = _arima_forecast(train_df, test_df, seq_len)
     else:
-        return jsonify({"error": "Unsupported file type"}), 400
+        preds = _linear_forecast(train_df, test_df, seq_len)
 
-    try:
-        X, dates = preprocess_dataframe(df)
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 400
+    mape = mean_absolute_percentage_error(test_df["Value"], preds)
+    rmse = mean_squared_error(test_df["Value"], preds, squared=False)
 
-    model_path = os.path.join(MODEL_DIR, model_name)
-    if not os.path.exists(model_path):
-        return jsonify({"error": "Model not found"}), 400
+    os.makedirs(RESULT_DIR, exist_ok=True)
+    result_df = pd.DataFrame({
+        "Date": test_df["Date"],
+        "Actual": test_df["Value"],
+        "Predicted": preds,
+    })
+    result_df.to_csv(os.path.join(RESULT_DIR, "forecast.csv"), index=False)
+    with open(os.path.join(RESULT_DIR, "metrics.json"), "w") as f:
+        json.dump({"MAPE": mape, "RMSE": rmse}, f)
 
-    if model_path.endswith((".pkl", ".joblib")):
-        model = joblib.load(model_path)
-        preds = model.predict(X).reshape(-1).tolist()
-    elif model_path.endswith(".h5"):
-        model = load_model(model_path)
-        preds = model.predict(X).reshape(-1).tolist()
-    else:
-        return jsonify({"error": "Unsupported model format"}), 400
-
-    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-    result_df = pd.DataFrame({"Date": dates, "Predicted": preds})
-    result = {"dates": dates, "predicted": preds}
-    if "Value" in df.columns:
-        result_df["Actual"] = df["Value"].tolist()
-        result["actual"] = df["Value"].tolist()
-
-    csv_path = os.path.join(DOWNLOAD_DIR, "forecast.csv")
-    excel_path = os.path.join(DOWNLOAD_DIR, "forecast.xlsx")
-    result_df.to_csv(csv_path, index=False)
-    result_df.to_excel(excel_path, index=False)
-
-    chart_path = os.path.join(CHART_DIR, CHART_FILE)
-    actual_vals = result_df.get("Actual").tolist() if "Actual" in result_df.columns else None
-    plot_forecast(dates, actual_vals, preds, save_path=chart_path)
-
-    history_file = os.path.join(DOWNLOAD_DIR, "history.json")
-    history = []
-    if os.path.exists(history_file):
-        with open(history_file) as f:
-            try:
-                history = json.load(f)
-            except json.JSONDecodeError:
-                history = []
-    history.append({"timestamp": datetime.utcnow().isoformat()})
-    with open(history_file, "w") as f:
-        json.dump(history, f)
-
-    return jsonify(result)
+    return redirect("/forecast/result")
 
 
 @forecast_bp.route("/forecast/result")
-def visualize_result():
-    """Render forecast result table and chart."""
-    csv_path = os.path.join(DOWNLOAD_DIR, "forecast.csv")
+def show_result():
+    csv_path = os.path.join(RESULT_DIR, "forecast.csv")
+    metrics_path = os.path.join(RESULT_DIR, "metrics.json")
     preview = []
+    metrics = {}
     if os.path.exists(csv_path):
         preview = pd.read_csv(csv_path).head().to_dict(orient="records")
-    return render_template("forecast_result.html", preview=preview)
+    if os.path.exists(metrics_path):
+        with open(metrics_path) as f:
+            metrics = json.load(f)
+    return render_template("result.html", preview=preview, metrics=metrics)
 
 
 @forecast_bp.route("/forecast/download/<ftype>")
 def download_file(ftype: str):
-    """Download forecast results as csv or excel."""
-    filename = "forecast.csv" if ftype == "csv" else "forecast.xlsx"
-    return send_from_directory(DOWNLOAD_DIR, filename, as_attachment=True)
+    filename = "forecast.csv" if ftype == "csv" else "metrics.json"
+    return send_from_directory(RESULT_DIR, filename, as_attachment=True)
 
-
-@forecast_bp.route("/forecast/download/chart")
-def download_chart():
-    """Download forecast chart PNG."""
-    return send_from_directory(CHART_DIR, CHART_FILE, as_attachment=True)
