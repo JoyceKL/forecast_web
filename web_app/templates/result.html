@@ -10,24 +10,32 @@
     <h1 class="mb-4">Forecast Result</h1>
     {% if metrics %}
     <div class="mb-3">
+        <p><strong>Model:</strong> {{ metrics.model }}</p>
         <p><strong>MAPE:</strong> {{ metrics.MAPE | round(4) }}</p>
         <p><strong>RMSE:</strong> {{ metrics.RMSE | round(4) }}</p>
         <a href="/forecast/download/csv" class="btn btn-primary btn-sm me-2">Download CSV</a>
+        <a href="/forecast/download/pdf" class="btn btn-primary btn-sm me-2">Download PDF</a>
         <a href="/forecast/download/json" class="btn btn-secondary btn-sm">Download Metrics</a>
     </div>
     {% endif %}
-    {% if preview %}
+
+    {% if chart_url %}
+    <h3>Actual vs Forecast</h3>
+    <img src="{{ chart_url }}" class="img-fluid mb-4" alt="Forecast Chart">
+    {% endif %}
+
+    {% if rows %}
     <div class="table-responsive mb-4">
         <table class="table table-dark table-bordered">
             <thead>
             <tr>
-                {% for col in preview[0].keys() %}
+                {% for col in rows[0].keys() %}
                 <th>{{ col }}</th>
                 {% endfor %}
             </tr>
             </thead>
             <tbody>
-            {% for row in preview %}
+            {% for row in rows %}
             <tr>
                 {% for val in row.values() %}
                 <td>{{ val }}</td>

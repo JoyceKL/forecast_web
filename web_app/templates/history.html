@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forecast History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/darkly/bootstrap.min.css" rel="stylesheet">
+    <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+</head>
+<body>
+<div class="container mt-4">
+    <h1 class="mb-4">Forecast History</h1>
+    {% if records %}
+    <div class="table-responsive">
+        <table class="table table-dark table-bordered sortable">
+            <thead>
+            <tr>
+                <th>Data File</th>
+                <th>Model</th>
+                <th>Params</th>
+                <th>MAPE</th>
+                <th>RMSE</th>
+                <th>Timestamp</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.data_file }}</td>
+                <td>{{ r.model }}</td>
+                <td>{{ r.params }}</td>
+                <td>{{ r.MAPE|round(4) }}</td>
+                <td>{{ r.RMSE|round(4) }}</td>
+                <td>{{ r.timestamp }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No history available.</p>
+    {% endif %}
+</div>
+</body>
+</html>

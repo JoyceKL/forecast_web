@@ -5,3 +5,5 @@ joblib
 numpy
 openpyxl
 h5py
+fpdf==1.7.2
+statsmodels
